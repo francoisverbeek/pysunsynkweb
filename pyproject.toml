@@ -1,0 +1,62 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sunsynk-web"
+dynamic = ["version"]
+description = ''
+readme = "README.md"
+requires-python = ">=3.8"
+license = "MIT"
+keywords = []
+authors = [
+  { name = "Francois", email = "f@flve.uk" },
+]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://github.com/Francois/sunsynk-web#readme"
+Issues = "https://github.com/Francois/sunsynk-web/issues"
+Source = "https://github.com/Francois/sunsynk-web"
+
+[tool.hatch.version]
+path = "src/sunsynk_web/__about__.py"
+
+[tool.hatch.envs.types]
+extra-dependencies = [
+  "mypy>=1.0.0",
+  "aiohttp"
+]
+[tool.hatch.envs.types.scripts]
+check = "mypy --install-types --non-interactive {args:src/sunsynk_web tests}"
+
+[tool.coverage.run]
+source_pkgs = ["sunsynk_web", "tests"]
+branch = true
+parallel = true
+omit = [
+  "src/sunsynk_web/__about__.py",
+]
+
+[tool.coverage.paths]
+sunsynk_web = ["src/sunsynk_web", "*/sunsynk-web/src/sunsynk_web"]
+tests = ["tests", "*/sunsynk-web/tests"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]
