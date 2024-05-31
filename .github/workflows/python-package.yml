@@ -39,5 +39,5 @@ jobs:
       run: |
         export PYTHONPATH=${PYTHONPATH}:src
         coverage run -m pytest tests
-        coverate report
+        coverage report
         
