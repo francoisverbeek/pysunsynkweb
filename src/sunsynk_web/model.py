@@ -4,8 +4,10 @@ from dataclasses import dataclass
 import decimal
 import logging
 import pprint
+from typing import List
 
-from .const import BASE_API, BASE_HEADERS
+from .const import BASE_API
+from .session import SunsynkwebSession
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,6 +39,24 @@ class Plant:
     acc_battery_discharge: decimal.Decimal = decimal.Decimal(0)
     acc_battery_charge: decimal.Decimal = decimal.Decimal(0)
     acc_load: decimal.Decimal = decimal.Decimal(0)
+    session: SunsynkwebSession | None = None
+
+    def __repr__(self):
+        """Summary of the plant"""
+        return f"""Plant {id}
+
+        {self.name}
+        Battery power {self.battery_power} W ({self.state_of_charge})%
+        Grid Power: {self.grid_power} W
+        PV Power: {self.pv_power} W
+        Accumulated PV Energy {self.acc_pv} KWh
+        Accumulated Grid export {self.acc_grid_export} KWh
+        Accumulated Grid import {self.acc_grid_import} KWh
+        Accumulated Load {self.acc_load} KWh
+        Accumulated Battery discharge {self.acc_battery_discharge} KWh
+        Accumulated Battery charge {self.acc_battery_charge} KWh
+
+        """
 
     def ismaster(self):
         """Is the plant a master plant.
@@ -47,49 +67,38 @@ class Plant:
         return self.master_id == self.id
 
     @classmethod
-    def from_api(cls, api_return):
+    def from_api(cls, api_return, session):
         """Create the plant from the return of the web api."""
         return cls(
             name=api_return["name"],
             id=api_return["id"],
             master_id=api_return["masterId"],
             status=api_return["status"],
+            session=session,
         )
 
-    async def enrich_inverters(self, coordinator):
+    async def enrich_inverters(self):
         """Populate inverters' serial numbers.
 
-        The plant summary doesn't contain the inverters, so we have a separate call to populate inverter's serial numbers.
+        The plant summary doesn't contain the inverters, so we have a
+        separate call to populate inverter's serial numbers.
         """
-        res = await coordinator.session.get(
+        returned = await self.session.get(
             BASE_API + f"/plant/{self.id}/inverters",
-            headers=self._headers(coordinator),
             params={"page": 1, "limit": 20, "type": -1, "status": -1},
         )
-        returned = await res.json()
         assert len(returned["data"]["infos"]) == 1
         self.inverter_sn = returned["data"]["infos"][0]["sn"]
 
-    async def _get_instantaneous_data(self, coordinator, headers):
-        """Populate instantenous data.
+    async def _get_instantaneous_data(self):
+        """Populate instantaneous data.
 
-        Instantenous data is convienently summarised in the 'flow' api end point.
+        Instantaneous data is conveniently summarized in the 'flow' api end point.
         """
-        res = await coordinator.session.get(
+        returned = await self.session.get(
             BASE_API + f"/plant/energy/{self.id}/flow",
-            headers=headers,
             params={"page": 1, "limit": 20},
         )
-        returned = await res.json()
-        if returned.get("msg") != "Success":
-            # we only check for the bearer here as it's the first call of the refresh cycle
-            _LOGGER.debug(
-                "unexpected answer from sunsynk web api : %s", pprint.pformat(returned)
-            )
-            if returned["code"] == 401:  # bearer token expired
-                coordinator.bearer = None  # will force refresh of token on next update
-            return
-
         _LOGGER.debug("Flow Api returned %s", pprint.pformat(returned))
 
         self.battery_power = returned["data"]["battPower"]
@@ -102,66 +111,43 @@ class Plant:
             self.grid_power *= -1
         self.pv_power = returned["data"]["pvPower"]
 
-    async def _get_total_grid(self, coordinator, headers):
-        res = await coordinator.session.get(
+    async def _get_total_grid(self):
+        returned = await self.session.get(
             BASE_API + f"/inverter/grid/{self.inverter_sn}/realtime",
-            headers=headers,
             params={"lan": "en"},
         )
-        returned = await res.json()
         self.acc_grid_export = returned["data"]["etotalTo"]
         self.acc_grid_import = returned["data"]["etotalFrom"]
 
-    async def _get_total_battery(self, coordinator, headers):
-        res = await coordinator.session.get(
+    async def _get_total_battery(self):
+        returned = await self.session.get(
             BASE_API + f"/inverter/battery/{self.inverter_sn}/realtime",
-            headers=headers,
             params={"lan": "en"},
         )
-        returned = await res.json()
         self.acc_battery_charge = returned["data"]["etotalChg"]
         self.acc_battery_discharge = returned["data"]["etotalDischg"]
 
-    async def _get_total_pv(self, coordinator, headers):
-        res = await coordinator.session.get(
+    async def _get_total_pv(self):
+        returned = await self.session.get(
             BASE_API + f"/inverter/{self.inverter_sn}/total",
-            headers=headers,
             params={"lan": "en"},
         )
-        returned = await res.json()
-        self.acc_pv = sum(
-            [
-                decimal.Decimal(i["value"])
-                for i in returned["data"]["infos"][0]["records"]
-            ]
-        )
+        self.acc_pv = sum([decimal.Decimal(i["value"]) for i in returned["data"]["infos"][0]["records"]])
 
-    async def _get_total_load(self, coordinator, headers):
-        res = await coordinator.session.get(
+    async def _get_total_load(self):
+        returned = await self.session.get(
             BASE_API + f"/inverter/load/{self.inverter_sn}/realtime",
-            headers=headers,
             params={"lan": "en"},
         )
-        returned = await res.json()
         self.acc_load = returned["data"]["totalUsed"]
 
-    def _headers(self, coordinator):
-        headers = BASE_HEADERS.copy()
-        headers.update({"Authorization": f"Bearer{coordinator.bearer}"})
-        return headers
-
-    async def update(self, coordinator):
+    async def update(self):
         """Update all sensors."""
-        await self._get_instantaneous_data(coordinator, self._headers(coordinator))
-        if coordinator.bearer is not None:
-            # this assumes it's not going to expire between any of these calls
-            # if it does, the update will raise but will restore service above
-            await self._get_total_pv(coordinator, self._headers(coordinator))
-            await self._get_total_grid(coordinator, self._headers(coordinator))
-            await self._get_total_battery(coordinator, self._headers(coordinator))
-            await self._get_total_load(coordinator, self._headers(coordinator))
-        else:
-            _LOGGER.debug("skipping updates, bearer will refresh next iteration")
+        await self._get_instantaneous_data()
+        await self._get_total_pv()
+        await self._get_total_grid()
+        await self._get_total_battery()
+        await self._get_total_load()
 
 
 @dataclass
@@ -171,30 +157,25 @@ class Installation:
     This integration presents the plants as a single entity.
     """
 
-    plants: list
+    plants: List[Plant]
 
     @classmethod
-    def from_api(cls, api_return):
+    def from_api(cls, api_return, session):
         """Create the installation from the sunsynk web api."""
         assert "data" in api_return
         assert api_return["msg"] == "Success"
-        return cls(plants=[Plant.from_api(ret) for ret in api_return["data"]["infos"]])
+        return cls(plants=[Plant.from_api(ret, session) for ret in api_return["data"]["infos"]])
 
-    async def update(self, coordinator):
+    async def update(self):
         """Update all the plants. They will in turn update their sensors."""
         for plant in self.plants:
-            await plant.update(coordinator)
+            await plant.update()
 
 
-async def get_plants(coordinator):
+async def get_plants(session: SunsynkwebSession):
     """Start walking the plant composition."""
-    headers = BASE_HEADERS.copy()
-    headers.update({"Authorization": f"Bearer{coordinator.bearer}"})
-    returned = await coordinator.session.get(
-        BASE_API + "/plants", headers=headers, params={"page": 1, "limit": 20}
-    )
-    returned = await returned.json()
-    installation = Installation.from_api(returned)
+    returned = await session.get(BASE_API + "/plants", params={"page": 1, "limit": 20})
+    installation = Installation.from_api(returned, session)
     for plant in installation.plants:
-        await plant.enrich_inverters(coordinator)
+        await plant.enrich_inverters()
     return installation
