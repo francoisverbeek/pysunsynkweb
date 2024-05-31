@@ -5,8 +5,8 @@
 
 import aiohttp
 import aioresponses
-from sunsynk_web.model import get_plants
-from sunsynk_web.session import SunsynkwebSession
+from pysunsynkweb.model import get_plants
+from pysunsynkweb.session import SunsynkwebSession
 
 from tests.conftest import populatemocked
 
