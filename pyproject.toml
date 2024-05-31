@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "sunsynk-web"
+name = "pysunsynkweb"
 dynamic = ["version"]
 description = ''
 readme = "README.md"
@@ -29,9 +29,9 @@ dependencies = [
 ]
 
 [project.urls]
-Documentation = "https://github.com/Francois/sunsynk-web#readme"
-Issues = "https://github.com/Francois/sunsynk-web/issues"
-Source = "https://github.com/Francois/sunsynk-web"
+Documentation = "https://github.com/francoisverbeek/pysunsynkweb"
+Issues = "https://github.com/francoisverbeek/pysunsynkweb/issues"
+Source = "https://github.com/francoisverbeek/pysunsynkweb"
 
 [tool.hatch.envs.test]
 extra-dependencies = [
@@ -56,26 +56,26 @@ cov = [
 asyncio_mode = "auto"
 [tool.hatch.version]
 
-path = "src/sunsynk_web/__about__.py"
+path = "src/pysunsynkweb/__about__.py"
 [tool.hatch.envs.types]
 extra-dependencies = [
   "mypy>=1.0.0",
   "aioresponses"
 ]
 [tool.hatch.envs.types.scripts]
-check = "mypy --install-types --non-interactive {args:src/sunsynk_web tests}"
+check = "mypy --install-types --non-interactive {args:src/pysunsynkweb tests}"
 
 [tool.coverage.run]
-source_pkgs = ["sunsynk_web", "tests"]
+source_pkgs = ["pysunsynkweb", "tests"]
 branch = true
 parallel = true
 omit = [
-  "src/sunsynk_web/__about__.py",
+  "src/pysunsynkweb/__about__.py",
 ]
 
 [tool.coverage.paths]
-sunsynk_web = ["src/sunsynk_web", "*/sunsynk-web/src/sunsynk_web"]
-tests = ["tests", "*/sunsynk-web/tests"]
+pysunsynkweb = ["src/pysunsynkweb", "*/pysunsynkweb/src/pysunsynkweb"]
+tests = ["tests", "*/pysunsynkweb/tests"]
 
 [tool.coverage.report]
 exclude_lines = [

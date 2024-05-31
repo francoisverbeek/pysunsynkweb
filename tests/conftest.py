@@ -2,7 +2,7 @@
 
 import re
 
-from sunsynk_web.const import BASE_API, BASE_URL
+from pysunsynkweb.const import BASE_API, BASE_URL
 
 
 def populatemocked(mocked):

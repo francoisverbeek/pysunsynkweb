@@ -3,9 +3,9 @@
 import aiohttp
 from aioresponses import aioresponses
 import pytest
-from sunsynk_web.const import BASE_URL
-from sunsynk_web.exceptions import AuthenticationFailed
-from sunsynk_web.session import SunsynkwebSession
+from pysunsynkweb.const import BASE_URL
+from pysunsynkweb.exceptions import AuthenticationFailed
+from pysunsynkweb.session import SunsynkwebSession
 from yarl import URL
 
 
