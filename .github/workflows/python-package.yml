@@ -38,7 +38,7 @@ jobs:
     - name: Test with pytest
       run: |
         export PYTHONPATH=${PYTHONPATH}:src
-        coverage run -m pytest --include=src/ tests
+        coverage run --include=src/ -m pytest tests
         coverage combine
         coverage report
         
