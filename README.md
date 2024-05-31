@@ -1,7 +1,7 @@
 # Sunsynk Web
 
-[![PyPI - Version](https://img.shields.io/pypi/v/sunsynk-web.svg)](https://pypi.org/project/sunsynk-web)
-[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/sunsynk-web.svg)](https://pypi.org/project/sunsynk-web)
+[![PyPI - Version](https://img.shields.io/pypi/v/pysunsynkweb.svg)](https://pypi.org/project/pysunsynkweb)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/pysunsynkweb.svg)](https://pypi.org/project/pysunsynkweb)
 
 -----
 
