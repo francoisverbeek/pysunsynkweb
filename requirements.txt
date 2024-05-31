@@ -1,0 +1,5 @@
+coverage
+aiohttp
+aioresponses
+ruff
+pytest-asyncio

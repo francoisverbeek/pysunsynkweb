@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import decimal
 import logging
 import pprint
-from typing import List
+from typing import List, Union
 
 from .const import BASE_API
 from .session import SunsynkwebSession
@@ -32,14 +32,14 @@ class Plant:
     load_power: int = 0
     grid_power: int = 0
     pv_power: int = 0
-    inverter_sn: int | None = None
+    inverter_sn: Union[int, None] = None
     acc_pv: decimal.Decimal = decimal.Decimal(0)
     acc_grid_export: decimal.Decimal = decimal.Decimal(0)
     acc_grid_import: decimal.Decimal = decimal.Decimal(0)
     acc_battery_discharge: decimal.Decimal = decimal.Decimal(0)
     acc_battery_charge: decimal.Decimal = decimal.Decimal(0)
     acc_load: decimal.Decimal = decimal.Decimal(0)
-    session: SunsynkwebSession | None = None
+    session: Union[SunsynkwebSession , None] = None
 
     def __repr__(self):
         """Summary of the plant"""
