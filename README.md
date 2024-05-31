@@ -13,7 +13,7 @@
 ## Installation
 
 ```console
-pip install sunsynk-web
+pip install pysunsynkweb
 ```
 
 ## License
