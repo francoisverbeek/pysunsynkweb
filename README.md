@@ -18,4 +18,4 @@ pip install pysunsynkweb
 
 ## License
 
-`sunsynk-web` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+`pysunsynkweb` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
