@@ -14,8 +14,40 @@ from .session import SunsynkwebSession
 _LOGGER = logging.getLogger(__name__)
 
 
+class Aggregated:
+    @property
+    def agg_collection(self):
+        """The collection over which to aggregate"""
+        raise NotImplementedError
+
+    @property
+    def acc_pv(self):
+        """Accumulated energy from PV"""
+        return sum(i.acc_pv for i in self.agg_collection)
+
+    @property
+    def acc_grid_export(self):
+        return max(i.acc_grid_export for i in self.agg_collection)
+
+    @property
+    def acc_grid_import(self):
+        return max(i.acc_grid_import for i in self.agg_collection)
+
+    @property
+    def acc_battery_discharge(self):
+        return sum(i.acc_battery_discharge for i in self.agg_collection)
+
+    @property
+    def acc_battery_charge(self):
+        return sum(i.acc_battery_charge for i in self.agg_collection)
+
+    @property
+    def acc_load(self):
+        return sum(i.acc_load for i in self.agg_collection)
+
+
 @dataclass
-class Plant:
+class Plant(Aggregated):
     """Proxy for the 'Plant' object in sunsynk web api.
 
     A plant can host multiple inverters and other devices. Our plant object
@@ -36,23 +68,6 @@ class Plant:
     pv_power: int = 0
     session: Union[SunsynkwebSession, None] = None
     inverters: List[Inverter] = field(default_factory=list)
-
-    def __repr__(self):
-        """Summary of the plant"""
-        return f"""Plant {id}
-
-        {self.name}
-        Battery power {self.battery_power} W ({self.state_of_charge})%
-        Grid Power: {self.grid_power} W
-        PV Power: {self.pv_power} W
-        Accumulated PV Energy {self.acc_pv} KWh
-        Accumulated Grid export {self.acc_grid_export} KWh
-        Accumulated Grid import {self.acc_grid_import} KWh
-        Accumulated Load {self.acc_load} KWh
-        Accumulated Battery discharge {self.acc_battery_discharge} KWh
-        Accumulated Battery charge {self.acc_battery_charge} KWh
-
-        """
 
     def ismaster(self):
         """Is the plant a master plant.
@@ -115,32 +130,12 @@ class Plant:
             await inverter.update()
 
     @property
-    def acc_pv(self):
-        return sum(i.acc_pv for i in self.inverters)
-
-    @property
-    def acc_grid_export(self):
-        return max(i.acc_grid_export for i in self.inverters)
-
-    @property
-    def acc_grid_import(self):
-        return max(i.acc_grid_import for i in self.inverters)
-
-    @property
-    def acc_battery_discharge(self):
-        return sum(i.acc_battery_discharge for i in self.inverters)
-
-    @property
-    def acc_battery_charge(self):
-        return sum(i.acc_battery_charge for i in self.inverters)
-
-    @property
-    def acc_load(self):
-        return sum(i.acc_load for i in self.inverters)
+    def agg_collection(self):
+        return self.inverters
 
 
 @dataclass
-class Installation:
+class Installation(Aggregated):
     """An installation is a series of plants.
 
     This integration presents the plants as a single entity.
@@ -161,6 +156,10 @@ class Installation:
         """Update all the plants. They will in turn update their sensors."""
         for plant in self.plants:
             await plant.update()
+
+    @property
+    def agg_collection(self):
+        return self.plants
 
 
 async def get_plants(session: SunsynkwebSession):

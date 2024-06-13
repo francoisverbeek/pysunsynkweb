@@ -12,6 +12,8 @@ async def _main(options):
     )
     inst = await get_plants(session)
     await inst.update()
+    print(inst)
+    print("===")
     for plant in inst.plants:
         print(plant)
         for inverter in plant.inverters:
