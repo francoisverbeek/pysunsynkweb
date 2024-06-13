@@ -1,10 +1,12 @@
 """Top level data model for the sunsynk web api."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import decimal
 import logging
 import pprint
 from typing import List, Union
+
+from pysunsynkweb.inverter import Inverter
 
 from .const import BASE_API
 from .session import SunsynkwebSession
@@ -32,14 +34,8 @@ class Plant:
     load_power: int = 0
     grid_power: int = 0
     pv_power: int = 0
-    inverter_sn: Union[int, None] = None
-    acc_pv: decimal.Decimal = decimal.Decimal(0)
-    acc_grid_export: decimal.Decimal = decimal.Decimal(0)
-    acc_grid_import: decimal.Decimal = decimal.Decimal(0)
-    acc_battery_discharge: decimal.Decimal = decimal.Decimal(0)
-    acc_battery_charge: decimal.Decimal = decimal.Decimal(0)
-    acc_load: decimal.Decimal = decimal.Decimal(0)
-    session: Union[SunsynkwebSession , None] = None
+    session: Union[SunsynkwebSession, None] = None
+    inverters: List[Inverter] = field(default_factory=list)
 
     def __repr__(self):
         """Summary of the plant"""
@@ -87,8 +83,9 @@ class Plant:
             BASE_API + f"/plant/{self.id}/inverters",
             params={"page": 1, "limit": 20, "type": -1, "status": -1},
         )
-        assert len(returned["data"]["infos"]) == 1
-        self.inverter_sn = returned["data"]["infos"][0]["sn"]
+        self.inverters = [
+            Inverter(k["sn"], session=self.session) for k in returned["data"]["infos"]
+        ]
 
     async def _get_instantaneous_data(self):
         """Populate instantaneous data.
@@ -111,43 +108,35 @@ class Plant:
             self.grid_power *= -1
         self.pv_power = returned["data"]["pvPower"]
 
-    async def _get_total_grid(self):
-        returned = await self.session.get(
-            BASE_API + f"/inverter/grid/{self.inverter_sn}/realtime",
-            params={"lan": "en"},
-        )
-        self.acc_grid_export = returned["data"]["etotalTo"]
-        self.acc_grid_import = returned["data"]["etotalFrom"]
-
-    async def _get_total_battery(self):
-        returned = await self.session.get(
-            BASE_API + f"/inverter/battery/{self.inverter_sn}/realtime",
-            params={"lan": "en"},
-        )
-        self.acc_battery_charge = returned["data"]["etotalChg"]
-        self.acc_battery_discharge = returned["data"]["etotalDischg"]
-
-    async def _get_total_pv(self):
-        returned = await self.session.get(
-            BASE_API + f"/inverter/{self.inverter_sn}/total",
-            params={"lan": "en"},
-        )
-        self.acc_pv = sum([decimal.Decimal(i["value"]) for i in returned["data"]["infos"][0]["records"]])
-
-    async def _get_total_load(self):
-        returned = await self.session.get(
-            BASE_API + f"/inverter/load/{self.inverter_sn}/realtime",
-            params={"lan": "en"},
-        )
-        self.acc_load = returned["data"]["totalUsed"]
-
     async def update(self):
         """Update all sensors."""
         await self._get_instantaneous_data()
-        await self._get_total_pv()
-        await self._get_total_grid()
-        await self._get_total_battery()
-        await self._get_total_load()
+        for inverter in self.inverters:
+            await inverter.update()
+
+    @property
+    def acc_pv(self):
+        return sum(i.acc_pv for i in self.inverters)
+
+    @property
+    def acc_grid_export(self):
+        return max(i.acc_grid_export for i in self.inverters)
+
+    @property
+    def acc_grid_import(self):
+        return max(i.acc_grid_import for i in self.inverters)
+
+    @property
+    def acc_battery_discharge(self):
+        return sum(i.acc_battery_discharge for i in self.inverters)
+
+    @property
+    def acc_battery_charge(self):
+        return sum(i.acc_battery_charge for i in self.inverters)
+
+    @property
+    def acc_load(self):
+        return sum(i.acc_load for i in self.inverters)
 
 
 @dataclass
@@ -164,7 +153,9 @@ class Installation:
         """Create the installation from the sunsynk web api."""
         assert "data" in api_return
         assert api_return["msg"] == "Success"
-        return cls(plants=[Plant.from_api(ret, session) for ret in api_return["data"]["infos"]])
+        return cls(
+            plants=[Plant.from_api(ret, session) for ret in api_return["data"]["infos"]]
+        )
 
     async def update(self):
         """Update all the plants. They will in turn update their sensors."""
