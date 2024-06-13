@@ -3,6 +3,7 @@
 
 # from tests.common import MockConfigEntry
 
+import decimal
 import aiohttp
 import aioresponses
 from pysunsynkweb.model import get_plants
@@ -26,3 +27,4 @@ async def test_base_model():
         assert plant1.acc_load == 2
         assert plant1.ismaster() is True
         assert "Grid Power:" in repr(plant1)
+        assert plant1.inverters[0].pv_strings[1].voltage == decimal.Decimal("212.9")
