@@ -13,9 +13,11 @@ async def _main(options):
     inst = await get_plants(session)
     await inst.update()
     print(inst)
+    print(inst.acc_battery_charge)
     print("===")
     for plant in inst.plants:
         print(plant)
+        print(plant.acc_battery_charge)
         for inverter in plant.inverters:
             print("id| V . |  A    | W")
             for string in inverter.pv_strings.values():

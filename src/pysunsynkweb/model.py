@@ -161,6 +161,26 @@ class Installation(Aggregated):
     def agg_collection(self):
         return self.plants
 
+    @property
+    def battery_power(self):
+        return sum(p.battery_power for p in self.plants)
+
+    @property
+    def state_of_charge(self):
+        return max(p.state_of_charge for p in self.plants)
+
+    @property
+    def load_power(self):
+        return sum(p.load_power for p in self.plants)
+
+    @property
+    def grid_power(self):
+        return max(p.grid_power for p in self.plants)
+
+    @property
+    def pv_power(self):
+        return sum(p.pv_power for p in self.plants)
+
 
 async def get_plants(session: SunsynkwebSession):
     """Start walking the plant composition."""
