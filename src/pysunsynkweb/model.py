@@ -27,11 +27,11 @@ class Aggregated:
 
     @property
     def acc_grid_export(self):
-        return max(i.acc_grid_export for i in self.agg_collection)
+        return sum(i.acc_grid_export for i in self.agg_collection)
 
     @property
     def acc_grid_import(self):
-        return max(i.acc_grid_import for i in self.agg_collection)
+        return sum(i.acc_grid_import for i in self.agg_collection)
 
     @property
     def acc_battery_discharge(self):

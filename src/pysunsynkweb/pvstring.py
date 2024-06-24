@@ -14,8 +14,8 @@ class PVString:
     """
 
     id: int
-    voltage: decimal.Decimal = decimal.Decimal(0)
-    power: decimal.Decimal = decimal.Decimal(0)
+    pv_voltage: decimal.Decimal = decimal.Decimal(0)
+    pv_power: decimal.Decimal = decimal.Decimal(0)
     amperage: decimal.Decimal = decimal.Decimal(0)
     last_update: datetime.datetime = None
 
@@ -36,6 +36,6 @@ class PVString:
         ```
         """
         self.last_update = datetime.datetime.strptime(data["time"], "%Y-%m-%d %H:%M:%S")
-        self.power = decimal.Decimal(data["ppv"])
+        self.pv_power = decimal.Decimal(data["ppv"])
         self.voltage = decimal.Decimal(data["vpv"])
         self.amperage = decimal.Decimal(data["ipv"])
