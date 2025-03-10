@@ -22,7 +22,12 @@ async def _main(options):
             print("id| V . |  A    | W")
             for string in inverter.pv_strings.values():
                 print(
-                    " ", string.id, " ", string.voltage, string.amperage, string.power
+                    " ",
+                    string.id,
+                    " ",
+                    string.voltage,
+                    string.amperage,
+                    string.pv_power,
                 )
 
 

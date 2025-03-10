@@ -22,7 +22,9 @@ class SunsynkwebSession:
     authentication token, etc.
     """
 
-    def __init__(self, session: aiohttp.ClientSession, username: str, password: str) -> None:
+    def __init__(
+        self, session: aiohttp.ClientSession, username: str, password: str
+    ) -> None:
         """Pass an aiohttp client session and authentication items"""
         self.session = session
         self.bearer = None
@@ -34,9 +36,9 @@ class SunsynkwebSession:
         if self.bearer is None:
             await self._get_bearer_token()
         headers = BASE_HEADERS.copy()
-        headers.update({"Authorization": f"Bearer{self.bearer}"})
+        headers.update({"Authorization": f"Bearer {self.bearer}"})
         kwargs["headers"] = headers
-        result = await self.session.get(*args, **kwargs)
+        result = await self.session.get(*args, verify_ssl=False, **kwargs)
         result = await result.json()
         if result.get("msg") != "Success" and result.get("code") == 401:
             # expired token
@@ -54,7 +56,12 @@ class SunsynkwebSession:
             "source": "sunsynk",
             "areaCode": "sunsynk",
         }
-        returned = await self.session.post(BASE_URL + "/oauth/token", json=params, headers=BASE_HEADERS)
+        returned = await self.session.post(
+            BASE_URL + "/oauth/token",
+            json=params,
+            headers=BASE_HEADERS,
+            verify_ssl=False,
+        )
 
         returned = await returned.json()
         _LOGGER.debug("authentication attempt returned %s", pprint.pformat(returned))
