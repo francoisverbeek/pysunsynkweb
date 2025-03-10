@@ -29,7 +29,7 @@ async def test_base_model():
         assert plant1.inverters[0].pv_strings[1].voltage == decimal.Decimal("212.9")
         assert installation.acc_battery_charge == 4
         assert installation.acc_battery_discharge == 6
-        assert installation.acc_grid_export == 2
-        assert installation.acc_grid_import == 3
+        assert installation.acc_grid_export == 4
+        assert installation.acc_grid_import == 6
         assert installation.acc_load == 4
         assert installation.acc_pv == 6
