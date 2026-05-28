@@ -52,7 +52,7 @@ class Inverter:
             BASE_API + f"/inverter/load/{self.sn}/realtime",
             params={"lan": "en"},
         )
-        self.acc_load = decimal.Decimal(returned["data"]["totalUsed"])
+        self.acc_load = decimal.Decimal(returned["data"]["totalUsed"]) /1000
 
     async def _update_strings(self):
         returned = await self.session.get(
