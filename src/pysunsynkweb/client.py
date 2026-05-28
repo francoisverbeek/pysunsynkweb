@@ -51,6 +51,15 @@ class SunsynkClient:
             await self.login()
             return await self.get(url, params=params, attempts=attempts + 1)
         return await resp.json()
+    
+    async def post(self, url, json, params=None, attempts: int = 1):
+        resp = await self.session.post(
+            url, headers=self.__headers(), params=params, timeout=20, json=json
+        )
+        if resp.status == 401 and attempts == 1:
+            await self.login()
+            return await self.post(url, json, params=params, attempts=attempts + 1)
+        return await resp.json()
 
     def __headers(self) -> dict[str, str]:
         headers = {
