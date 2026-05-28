@@ -24,9 +24,10 @@ class SunsynkClient:
         self = SunsynkClient(username, password, base_url)
         return await self.login()
 
-    def __init__(self, username: str, password: str, base_url: str = None):
+    def __init__(self, username: str, password: str, base_url: str = None, 
+    session: aiohttp.ClientSession = None):
         self.base_url = 'https://api.sunsynk.net' if base_url is None else base_url
-        self.session = aiohttp.ClientSession()
+        self.session = session or aiohttp.ClientSession()
         self.access_token = None
         self.refresh_token = None
         self.username = username
