@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "display_stats (local credentials)",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/examples/display_stats_local.py",
+            "console": "integratedTerminal",
+            "envFile": "${workspaceFolder}/.vscode/launch.env"
+        },
+        {
             "name": "Python Debugger: Current File with Arguments",
             "type": "debugpy",
             "request": "launch",

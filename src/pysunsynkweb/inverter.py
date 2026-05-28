@@ -2,15 +2,15 @@ from dataclasses import dataclass, field
 import decimal
 from typing import Union
 
+from pysunsynkweb.client import SunsynkClient
 from pysunsynkweb.const import BASE_API
 from pysunsynkweb.pvstring import PVString
-from pysunsynkweb.session import SunsynkwebSession
 
 
 @dataclass
 class Inverter:
     sn: int
-    session: Union[SunsynkwebSession, None] = None
+    session: Union[SunsynkClient, None] = None
     acc_pv: decimal.Decimal = decimal.Decimal(0)
     acc_grid_export: decimal.Decimal = decimal.Decimal(0)
     acc_grid_import: decimal.Decimal = decimal.Decimal(0)

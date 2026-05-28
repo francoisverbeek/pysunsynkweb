@@ -9,7 +9,7 @@ from typing import List, Union
 from pysunsynkweb.inverter import Inverter
 
 from .const import BASE_API
-from .session import SunsynkwebSession
+from .client import SunsynkClient
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ class Plant(Aggregated):
     load_power: int = 0
     grid_power: int = 0
     pv_power: int = 0
-    session: Union[SunsynkwebSession, None] = None
+    session: Union[SunsynkClient, None] = None
     inverters: List[Inverter] = field(default_factory=list)
 
     def ismaster(self):
@@ -182,7 +182,7 @@ class Installation(Aggregated):
         return sum(p.pv_power for p in self.plants)
 
 
-async def get_plants(session: SunsynkwebSession):
+async def get_plants(session):
     """Start walking the plant composition."""
     returned = await session.get(BASE_API + "/plants", params={"page": 1, "limit": 20})
     installation = Installation.from_api(returned, session)

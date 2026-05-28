@@ -14,7 +14,7 @@ async def test_session_any_query_triggers_auth():
     with aioresponses() as mocked:
         session = SunsynkwebSession(aiohttp.ClientSession(), "testuser", "testpassword")
         mocked.post(
-            BASE_URL + "/oauth/token",
+            BASE_URL + "/oauth/token/new",
             status=200,
             payload={"code": 0, "msg": "Success", "data": {"access_token": "12345"}},
         )
@@ -37,13 +37,13 @@ async def test_usession_failed_auth_retriggers_auth():
     with aioresponses() as mocked:
         session = SunsynkwebSession(aiohttp.ClientSession(), "testuser", "testpassword")
         mocked.post(
-            BASE_URL + "/oauth/token",
+            BASE_URL + "/oauth/token/new",
             status=200,
             payload={"code": 0, "msg": "Success", "data": {"access_token": "12345"}},
         )
         mocked.get(BASE_URL, status=200, payload={"code": 401})
         mocked.post(
-            BASE_URL + "/oauth/token",
+            BASE_URL + "/oauth/token/new",
             status=200,
             payload={"code": 0, "msg": "Success", "data": {"access_token": "12345"}},
         )
@@ -59,7 +59,7 @@ async def test_usession_failed_auth_raises():
     with aioresponses() as mocked:
         session = SunsynkwebSession(aiohttp.ClientSession(), "testuser", "testpassword")
         mocked.post(
-            BASE_URL + "/oauth/token", status=200, payload={"code": 0, "msg": "Success", "data": {"invalid": "12345"}}
+            BASE_URL + "/oauth/token/new", status=200, payload={"code": 0, "msg": "Success", "data": {"invalid": "12345"}}
         )
         mocked.get(BASE_URL, status=200, payload={})
         with pytest.raises(AuthenticationFailed):

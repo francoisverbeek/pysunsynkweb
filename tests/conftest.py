@@ -10,10 +10,6 @@ from pysunsynkweb.const import BASE_API, BASE_URL
 
 def populatemocked(mocked):
     """Return the normal start of coordinator minimal api required from the api."""
-    mocked.post(
-        BASE_URL + "/oauth/token",
-        payload={"msg": "Success", "data": {"access_token": "12345"}},
-    )
     mocked.get(
         re.compile(BASE_API + "/plants.*"),
         payload={

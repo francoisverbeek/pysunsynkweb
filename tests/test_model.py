@@ -4,11 +4,10 @@
 # from tests.common import MockConfigEntry
 
 import decimal
-import aiohttp
-import aioresponses
-from pysunsynkweb.model import get_plants
-from pysunsynkweb.session import SunsynkwebSession
 
+import aioresponses
+from pysunsynkweb.client import SunsynkClient
+from pysunsynkweb.model import get_plants
 from tests.conftest import populatemocked
 
 
@@ -16,7 +15,7 @@ async def test_base_model():
     """Load the model and run one update"""
     with aioresponses.aioresponses() as mocked:
         populatemocked(mocked)
-        session = SunsynkwebSession(aiohttp.ClientSession(), "testuser", "testpassword")
+        session = SunsynkClient("testuser", "testpassword")
         installation = await get_plants(session)
         await installation.update()
         plant1, plant2 = installation.plants

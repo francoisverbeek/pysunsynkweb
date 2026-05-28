@@ -1,15 +1,16 @@
 import argparse
 import asyncio
+import logging
 
-import aiohttp
+from pysunsynkweb.client import SunsynkClient
 from pysunsynkweb.model import get_plants
-from pysunsynkweb.session import SunsynkwebSession
+from pysunsynkweb.session import _LOGGER
 
+logging.basicConfig(level=logging.DEBUG)
+_LOGGER.setLevel(logging.DEBUG)
 
 async def _main(options):
-    session = SunsynkwebSession(
-        aiohttp.ClientSession(), options.username, options.password
-    )
+    session = SunsynkClient(options.username, options.password)
     inst = await get_plants(session)
     await inst.update()
     print(inst)

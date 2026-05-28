@@ -57,7 +57,7 @@ class SunsynkwebSession:
             "areaCode": "sunsynk",
         }
         returned = await self.session.post(
-            BASE_URL + "/oauth/token",
+            BASE_URL + "/oauth/token/new",
             json=params,
             headers=BASE_HEADERS,
             verify_ssl=False,
