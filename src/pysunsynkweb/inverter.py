@@ -47,10 +47,13 @@ class Inverter:
             raise RuntimeError(f"{name} not in original settings")
         sent_settings = {k: original_settings[k] for k in set}
         sent_settings[name] = value
-        return await self.session.post(
+        res = await self.session.post(
             BASE_API + f"/common/setting/{self.sn}/set", json=sent_settings
         )
-        
+        assert 'success' in res, "Response doesn't contain success key"
+        assert res["success"], f"Setting {name} to {value} failed with response {res}"
+        return res
+
 
     async def set_overnight_charge_cap(self, cap:int):
         """Set the overnight charge cap."""
