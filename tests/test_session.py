@@ -28,7 +28,9 @@ async def test_session_any_query_triggers_auth():
     with aioresponses() as mocked:
         mocked.get(BASE_URL, payload={})
         assert session.bearer is not None
-        resp = await session.get(BASE_URL)  # note: no POST call anymore, bearer is already set
+        resp = await session.get(
+            BASE_URL
+        )  # note: no POST call anymore, bearer is already set
         assert resp == {}
 
 
@@ -59,7 +61,9 @@ async def test_usession_failed_auth_raises():
     with aioresponses() as mocked:
         session = SunsynkwebSession(aiohttp.ClientSession(), "testuser", "testpassword")
         mocked.post(
-            BASE_URL + "/oauth/token/new", status=200, payload={"code": 0, "msg": "Success", "data": {"invalid": "12345"}}
+            BASE_URL + "/oauth/token/new",
+            status=200,
+            payload={"code": 0, "msg": "Success", "data": {"invalid": "12345"}},
         )
         mocked.get(BASE_URL, status=200, payload={})
         with pytest.raises(AuthenticationFailed):

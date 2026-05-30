@@ -8,6 +8,7 @@ from pysunsynkweb.pvstring import PVString
 from pysunsynkweb.settings_keys import SENDING_KEYS
 import asyncio
 
+
 @dataclass
 class Inverter:
     sn: int
@@ -27,37 +28,45 @@ class Inverter:
         )
         self.acc_grid_export = decimal.Decimal(returned["data"]["etotalTo"])
         self.acc_grid_import = decimal.Decimal(returned["data"]["etotalFrom"])
-    
-    async def _get_settings(self):
-        returned = await self.session.get(
-            BASE_API + f'/common/setting/{self.sn}/read'
-        )
-        assert returned['success'], 'Request for current settings failed'
-        return returned['data']
 
-    async def _set_setting(self, name, value):
+    async def _get_settings(self):
+        returned = await self.session.get(BASE_API + f"/common/setting/{self.sn}/read")
+        assert returned["success"], "Request for current settings failed"
+        return returned["data"]
+
+    async def _set_setting(self, name, value, set=SENDING_KEYS):
         original_settings = await self._get_settings()
-        
+
         if name not in original_settings:
-            raise RuntimeError(f'{name} not in original settings')
-        sent_settings = {k: original_settings[k] for k in SENDING_KEYS}
+            raise RuntimeError(f"{name} not in original settings")
+        sent_settings = {k: original_settings[k] for k in set}
         sent_settings[name] = value
         res = await self.session.post(
-             BASE_API + f'/common/setting/{self.sn}/set', json=sent_settings
+            BASE_API + f"/common/setting/{self.sn}/set", json=sent_settings
         )
         await asyncio.sleep(15)
         new_settings = await self._get_settings()
         return res, new_settings
-        
+    async def enable_battery_charge(self):
+        """Enable battery charge."""
+        return await self._set_setting("batteryMaxCurrentCharge", "115")
+    async def disable_battery_charge(self):
+        """Enable battery charge."""
+        return await self._set_setting("batteryMaxCurrentCharge", "1")
+    async def enable_battery_discharge(self):
+        """Enable battery discharge."""
+        return await self._set_setting("batteryMaxCurrentDischarge", "115")
+    async def disable_battery_discharge(self):
+        """Disable battery discharge."""
+        return await self._set_setting("batteryMaxCurrentDischarge", "1")
     async def set_sell_mode(self):
         """Set inverter in export first."""
-        return await self._set_setting('sysWorkMode', "0")
-        
-    async def set_battery_mode(self ):
+        return await self._set_setting("sysWorkMode", "0")
+
+    async def set_battery_mode(self):
         """Set inverter in load/battery first."""
-        return await self._set_setting('sysWorkMode', "2")
-        
-        
+        return await self._set_setting("sysWorkMode", "2")
+
     async def _get_total_battery(self):
         returned = await self.session.get(
             BASE_API + f"/inverter/battery/{self.sn}/realtime",
@@ -83,7 +92,7 @@ class Inverter:
             BASE_API + f"/inverter/load/{self.sn}/realtime",
             params={"lan": "en"},
         )
-        self.acc_load = decimal.Decimal(returned["data"]["totalUsed"]) /1000
+        self.acc_load = decimal.Decimal(returned["data"]["totalUsed"]) / 1000
 
     async def _update_strings(self):
         returned = await self.session.get(

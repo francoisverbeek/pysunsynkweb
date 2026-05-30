@@ -9,6 +9,7 @@ from pysunsynkweb.session import _LOGGER
 logging.basicConfig(level=logging.DEBUG)
 _LOGGER.setLevel(logging.DEBUG)
 
+
 async def _main(options):
     session = SunsynkClient(options.username, options.password)
     inst = await get_plants(session)
