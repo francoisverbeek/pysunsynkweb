@@ -6,5 +6,5 @@ dist
 coverage.xml
 .vscode/launch.env
 examples/display_stats_local.py
-test.ipynb
+*.ipynb
 setting a value
