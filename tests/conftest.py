@@ -94,6 +94,22 @@ def populatemocked(mocked):
     )
 
     mocked.get(
+        re.compile(BASE_API + r"/common/setting/\d+/read.*"),
+        repeat=True,
+        payload={
+            "code": 0,
+            "msg": "Success",
+            "data": {
+                "batteryMaxCurrentCharge": "115",
+                "batteryMaxCurrentDischarge": "115",
+                "cap1": "100",
+                "sysWorkMode": "2",
+            },
+            "success": True,
+        },
+    )
+
+    mocked.get(
         re.compile(BASE_API + "/inverter/123/realtime/input"),
         payload={
             "data": {
