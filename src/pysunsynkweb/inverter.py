@@ -20,6 +20,9 @@ class Inverter:
     acc_battery_charge: decimal.Decimal = decimal.Decimal(0)
     acc_load: decimal.Decimal = decimal.Decimal(0)
     pv_strings: dict = field(default_factory=dict)
+    battery_charge_enabled: bool = True
+    battery_discharge_enabled: bool = True
+    overnight_charge_cap: int = 100
 
     async def _get_total_grid(self):
         returned = await self.session.get(
@@ -32,6 +35,9 @@ class Inverter:
     async def _get_settings(self):
         returned = await self.session.get(BASE_API + f"/common/setting/{self.sn}/read")
         assert returned["success"], "Request for current settings failed"
+        self.battery_charge_enabled = returned["data"]["batteryMaxCurrentCharge"] != "1"
+        self.battery_discharge_enabled = returned["data"]["batteryMaxCurrentDischarge"] != "1"
+        self.overnight_charge_cap = int(returned["data"]["cap1"])
         return returned["data"]
 
     async def _set_setting(self, name, value, set=SENDING_KEYS):
@@ -47,6 +53,12 @@ class Inverter:
         await asyncio.sleep(15)
         new_settings = await self._get_settings()
         return res, new_settings
+        
+    async def set_overnight_charge_cap(self, cap:int):
+        """Set the overnight charge cap."""
+        assert 0 <= cap <= 100, "Cap must be between 0 and 100"
+        return await self._set_setting("cap1", str(cap))
+
     async def enable_battery_charge(self):
         """Enable battery charge."""
         return await self._set_setting("batteryMaxCurrentCharge", "115")
@@ -105,6 +117,7 @@ class Inverter:
             ).update_from_inv(string)
 
     async def update(self):
+        await self._get_settings()
         await self._get_total_pv()
         await self._get_total_grid()
         await self._get_total_battery()
