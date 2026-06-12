@@ -8,3 +8,4 @@ coverage.xml
 examples/display_stats_local.py
 *.ipynb
 setting a value
+.DS_Store

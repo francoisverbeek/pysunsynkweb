@@ -116,7 +116,7 @@ class Plant(Aggregated):
         self.battery_power = (
             returned["data"]["battPower"] / 1000
         )  # we expose kilowatts to ha
-        if returned["data"]["toBat"]:
+        if returned["data"]["toBat"] and self.battery_power > 0:
             self.battery_power *= -1
         self.state_of_charge = returned["data"]["soc"]
         self.load_power = (
@@ -125,7 +125,7 @@ class Plant(Aggregated):
         self.grid_power = (
             returned["data"]["gridOrMeterPower"] / 1000
         )  # we expose kilowatts to ha
-        if returned["data"]["toGrid"]:
+        if returned["data"]["toGrid"] and self.grid_power > 0:
             self.grid_power *= -1
         self.pv_power = returned["data"]["pvPower"] / 1000  # we expose kilowatts to ha
 
